@@ -1,0 +1,132 @@
+global function sutil_main_Init
+
+//Keeps track of all the different rui's args (Just make these here, don't )
+float statsHudRuiArg_killStatsAlpha
+float statsHudRuiArg_deathStatsAlpha
+float statsHudRuiArg_kdStatsAlpha
+
+vector statsHudRuiArg_killStatsColor
+vector statsHudRuiArg_deathStatsColor
+vector statsHudRuiArg_kdStatsColor
+
+//NOTE : Fix up functions and repeating shit later, plus add more comments(I know I know I'm dogshit at coding squirrel for Titanfall 2 Northstar, I'm always open to suggestions and help if you add me on discord lol)
+
+void function sutil_main_Init()
+{
+    RegisterButtonPressedCallback( GetConVarInt( "sutil_hudToggleButtonEnumValue" ), sutil_toggleStatsHud )
+
+    thread sutil_UpdateStatsHud()
+}
+
+//Function to toggle the 'sutil_hudEnabled' ConVar between 0 and 1
+void function sutil_toggleStatsHud( int buttonEnum )
+{
+    if( GetConVarInt( "sutil_hudEnabled" ) == 0 )
+    {
+        SetConVarInt( "sutil_hudEnabled", 1 )
+        return
+    }
+    if( GetConVarInt( "sutil_hudEnabled" ) == 1 )
+    {
+        SetConVarInt( "sutil_hudEnabled", 0 )
+        return
+    }
+
+}
+
+void function sutil_UpdateStatsHud()
+{
+    WaitFrame()
+    string currentMapName = GetMapName()
+
+    var statsHudRui_killStats = RuiCreate ( $"ui/cockpit_console_text_top_left.rpak", clGlobal.topoCockpitHudPermanent, RUI_DRAW_COCKPIT, 0 )
+    RuiSetInt( statsHudRui_killStats, "maxLines", 1 )
+    RuiSetInt( statsHudRui_killStats, "lineNum", 1 )
+    RuiSetFloat2( statsHudRui_killStats, "msgPos", <0.9, 0.025, 0.0> )
+    RuiSetFloat( statsHudRui_killStats, "msgFontSize", 25.0 )
+    RuiSetFloat( statsHudRui_killStats, "msgAlpha", 0.5 )
+    RuiSetFloat( statsHudRui_killStats, "thicken", 0.0 )
+    RuiSetFloat3( statsHudRui_killStats, "msgColor", <1.0, 1.0, 1.0> )
+
+    var statsHudRui_deathStats = RuiCreate ( $"ui/cockpit_console_text_top_left.rpak", clGlobal.topoCockpitHudPermanent, RUI_DRAW_COCKPIT, 0 )
+    RuiSetInt( statsHudRui_deathStats, "maxLines", 1 )
+    RuiSetInt( statsHudRui_deathStats, "lineNum", 1 )
+    RuiSetFloat2( statsHudRui_deathStats, "msgPos", <0.9, 0.05, 0.0> )
+    RuiSetFloat( statsHudRui_deathStats, "msgFontSize", 25.0 )
+    RuiSetFloat( statsHudRui_deathStats, "msgAlpha", 0.5 )
+    RuiSetFloat( statsHudRui_deathStats, "thicken", 0.0 )
+    RuiSetFloat3( statsHudRui_deathStats, "msgColor", <1.0, 1.0, 1.0> )
+
+    var statsHudRui_kdStats = RuiCreate ( $"ui/cockpit_console_text_top_left.rpak", clGlobal.topoCockpitHudPermanent, RUI_DRAW_COCKPIT, 0 )
+    RuiSetInt( statsHudRui_kdStats, "maxLines", 1 )
+    RuiSetInt( statsHudRui_kdStats, "lineNum", 1 )
+    RuiSetFloat2( statsHudRui_kdStats, "msgPos", <0.9, 0.075, 0.0> )
+    RuiSetFloat( statsHudRui_kdStats, "msgFontSize", 25.0 )
+    RuiSetFloat( statsHudRui_kdStats, "msgAlpha", 0.5 )
+    RuiSetFloat( statsHudRui_kdStats, "thicken", 0.0 )
+    RuiSetFloat3( statsHudRui_kdStats, "msgColor", <1.0, 1.0, 1.0> )
+
+    while( currentMapName == GetMapName() )
+    {
+        WaitFrame()
+
+        statsHudRuiArg_killStatsAlpha = GetConVarFloat( "sutil_killStatsAlpha" )
+        statsHudRuiArg_deathStatsAlpha = GetConVarFloat( "sutil_deathStatsAlpha" )
+        statsHudRuiArg_kdStatsAlpha = GetConVarFloat( "sutil_kdStatsAlpha" )
+
+        //If the ConVar 'sutil_hudEnabled' is set to 0 then make the alpha of all the stats hud ruis to 0.0 to hide them
+        if( GetConVarInt( "sutil_hudEnabled" ) == 0 )
+        {
+            RuiSetFloat( statsHudRui_killStats, "msgAlpha", 0.0 )
+            RuiSetFloat( statsHudRui_deathStats, "msgAlpha", 0.0 )
+            RuiSetFloat( statsHudRui_kdStats, "msgAlpha", 0.0 )
+        }
+        //If the ConVar 'sutil_hudEnabled' is set to 1 then make the alpha of all the stats hud ruis to 0.5 to show them
+        if( GetConVarInt( "sutil_hudEnabled" ) == 1 )
+        {
+            RuiSetFloat( statsHudRui_killStats, "msgAlpha", statsHudRuiArg_killStatsAlpha )
+            RuiSetFloat( statsHudRui_deathStats, "msgAlpha", statsHudRuiArg_deathStatsAlpha )
+            RuiSetFloat( statsHudRui_kdStats, "msgAlpha", statsHudRuiArg_kdStatsAlpha )
+        }
+
+        //These arrays are created by splitting up the stat label color ConVars at any instance of ","
+        array<string> statsHudRuiArg_killStatsColorTempStrings = split( GetConVarString( "sutil_killStatsColor" ), "," )
+        array<string> statsHudRuiArg_deathStatsColorTempStrings = split( GetConVarString( "sutil_deathStatsColor" ), "," )
+        array<string> statsHudRuiArg_kdStatsColorTempStrings = split( GetConVarString( "sutil_kdStatsColor" ), "," )
+
+        //set the statsHudRuiArg color vectors by taking the string arrays from the statsHudRuiArg temp color strings and assigning the values to the xyz components of the vectors
+        statsHudRuiArg_killStatsColor = <( statsHudRuiArg_killStatsColorTempStrings[0].tofloat() / 255 ), ( statsHudRuiArg_killStatsColorTempStrings[1].tofloat() / 255 ), ( statsHudRuiArg_killStatsColorTempStrings[2].tofloat() / 255 ) >
+        statsHudRuiArg_deathStatsColor = <( statsHudRuiArg_deathStatsColorTempStrings[0].tofloat() / 255 ), ( statsHudRuiArg_deathStatsColorTempStrings[1].tofloat() / 255 ), ( statsHudRuiArg_deathStatsColorTempStrings[2].tofloat() / 255 )>
+        statsHudRuiArg_kdStatsColor = <( statsHudRuiArg_kdStatsColorTempStrings[0].tofloat() / 255 ), ( statsHudRuiArg_kdStatsColorTempStrings[1].tofloat() / 255 ), ( statsHudRuiArg_kdStatsColorTempStrings[2].tofloat() / 255 )>
+
+        //Used to store the values for the local clinet player stats
+        int LocalClientPlayerKills = GetLocalClientPlayer().GetPlayerGameStat( PGS_KILLS )
+        int LocalClientPlayerDeaths = GetLocalClientPlayer().GetPlayerGameStat( PGS_DEATHS )
+
+        //Kill stats rui updates
+        RuiSetString( statsHudRui_killStats, "msgText", "Kills : " + LocalClientPlayerKills )
+        RuiSetFloat3( statsHudRui_killStats, "msgColor", statsHudRuiArg_killStatsColor )
+
+        //Death stats rui updates
+        RuiSetString( statsHudRui_deathStats, "msgText", "Deaths : " + LocalClientPlayerDeaths )
+        RuiSetFloat3( statsHudRui_deathStats, "msgColor", statsHudRuiArg_deathStatsColor )
+
+        //Make sure the mod isn't dividing by zero if the player has no deaths for the KD stats
+        float LocalClientPlayerKD
+        if( LocalClientPlayerDeaths == 0 )
+        {
+            LocalClientPlayerKD = float( LocalClientPlayerKills ) / 1
+        }
+        if( LocalClientPlayerDeaths > 0 )
+        {
+            LocalClientPlayerKD = float( LocalClientPlayerKills ) / float( LocalClientPlayerDeaths )
+        }
+
+        //KD stats rui updates
+        RuiSetString( statsHudRui_kdStats, "msgText", "K/D : " + LocalClientPlayerKD )
+        RuiSetFloat3( statsHudRui_kdStats, "msgColor", statsHudRuiArg_kdStatsColor )
+    }
+    RuiDestroy( statsHudRui_killStats )
+    RuiDestroy( statsHudRui_deathStats )
+    RuiDestroy( statsHudRui_kdStats )
+}
