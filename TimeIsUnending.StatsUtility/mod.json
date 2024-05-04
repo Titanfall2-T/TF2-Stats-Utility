@@ -1,0 +1,51 @@
+{
+    "Name": "Stats Utility",
+    "Description": "A configurable utility mod to display your current match stats on your hud.\n(Work in progress still. Will have more features in the near future...)\n\nMade By TimeIsUnending",
+    "Version": "0.1.1",
+
+    "LoadPriority": "0",
+
+    "ConVars": [
+        {
+            "Name": "sutil_hudEnabled",
+            "DefaultValue": "1"
+        },
+        {
+            "Name": "sutil_killStatsColor",
+            "DefaultValue": "255,255,255"
+        },
+        {
+            "Name": "sutil_killStatsAlpha",
+            "DefaultValue": "0.5"
+        },
+        {
+            "Name": "sutil_deathStatsColor",
+            "DefaultValue": "255,255,255"
+        },
+        {
+            "Name": "sutil_deathStatsAlpha",
+            "DefaultValue": "0.5"
+        },
+        {
+            "Name": "sutil_kdStatsColor",
+            "DefaultValue": "255,255,255"
+        },
+        {
+            "Name": "sutil_kdStatsAlpha",
+            "DefaultValue": "0.5"
+        },
+        {
+            "Name": "sutil_hudToggleButtonEnumValue",
+            "DefaultValue": "25"
+        }
+    ],
+    "Scripts": [
+        {
+            "Path": "sutil_main.gnut",
+            "RunOn": "MP",
+            "ClientCallback": {
+                "After": "sutil_main_Init"
+            }
+        }
+    ]
+}
